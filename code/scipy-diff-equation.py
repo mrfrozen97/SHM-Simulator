@@ -129,6 +129,10 @@ class SHM2D:
 
 
 
+
+
+
+    # Method to implement the function for the differential equation.....
     def model(self, x, t):
         x1 = x[0]
         x2 = x[1]
@@ -154,6 +158,8 @@ class SHM2D:
 
 
 
+
+    # Method to calculate the values and return it.................
     def get_values(self):
 
         pos = odeint(self.model, [self.initial_position[0], self.initial_velocity[0], self.initial_position[1], self.initial_velocity[1]], self.t)
@@ -161,6 +167,10 @@ class SHM2D:
         #return pos
 
 
+
+
+
+    # Method to plot curve for the calcualted values..................
     def plot_curve(self):
         x = []
         vx = []
