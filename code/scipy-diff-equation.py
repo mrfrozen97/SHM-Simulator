@@ -2,6 +2,8 @@ import numpy as np
 import math
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 
 
 
@@ -118,7 +120,7 @@ class SHM2D:
 
     def __init__(self):
         self.m = 10                                  # Mass of the block
-        self.k = 2.5                                 # Spring constant
+        self.k = 1.25                                 # Spring constant
         self.g = 9.8
         self.c = 0.02                                # Damping coefficient
         self.R = 5                                   # Initial length of the spring
@@ -126,9 +128,14 @@ class SHM2D:
         self.initial_velocity = [3, 8]               # Initial velocity of the block
         self.t = np.linspace(0, 300, 1000)           # Time with 1000 unique points
         self.pos = []                                # Stores values to plot
+        self.n = len(self.t)
 
-
-
+        self.x = []
+        self.y = []
+        self.vx = []
+        self.vy = []
+        self.displacement = []
+        self.animaton_ticks_count = 2
 
 
 
@@ -183,8 +190,12 @@ class SHM2D:
             y.append(i[2])
             vy.append(i[3])
 
-
-
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+        self.displacement = [math.sqrt(x[i]**2 + y[i]**2) for i in range(len(x))]
+        self.tita = [math.atan(x[i]/y[i]) for i in range(len(x))]
 
         plt.style.use('dark_background')
         fig = plt.figure()
@@ -204,10 +215,88 @@ class SHM2D:
         plt.show()
 
 
+    def animate_calculations(self, i):
+
+            distance = abs(self.displacement[i])
+            ratio = max(0.05, distance / max(self.displacement))
+            multiplier_sin = 0.2 * max(self.animation_yticks) / 4.35
+            mul_in = 8 * 4.35 / max(self.animation_yticks)
+            self.springx = [multiplier_sin * math.sin(y / ratio * mul_in) for y in self.springy if y >= -distance]
+
+            sign_dir = 1
+            if self.y[i] > 0:
+                sign_dir = -1
+
+            temp_tita = [math.cos(self.tita[i]), math.sin(self.tita[i])]
+            xnew = [sign_dir * (self.springx[ind] * temp_tita[0] + self.springy[ind] * temp_tita[1]) for ind in
+                    range(len(self.springx))]
+            ynew = [sign_dir * (self.springy[ind] * temp_tita[0] - self.springx[ind] * temp_tita[1]) for ind in
+                    range(len(self.springx))]
+
+            # print(distance)
+
+            plt.clf()
+
+            plt.figure(1)
+            plt.subplot(211)
+
+            min = max(0, i - 500)
+            plt.plot(self.x[:i], self.y[:i], linewidth=0.5, color='g')
+
+            plt.subplot(212)
+            # plt.plot([0, self.ux[5 * i]], [0, self.uy[5 * i]], zorder=1)
+            #plt.scatter(self.vx[5 * i], self.vy[5 * i], s=500, color='r', zorder=3)
+            plt.scatter(self.x[i], self.y[i], s=300, zorder=2, color='y')
+            #plt.plot(self.springx, self.springy)
+            plt.plot(xnew, ynew, zorder=1)
+            plt.xticks(self.animation_xticks)
+            plt.yticks(self.animation_yticks)
+
+
+    def animate(self):
+
+            max_vx = max(abs(max(self.x)), abs(min(self.x)))
+            max_vy = max(abs(max(self.y)), abs(min(self.y)))
+            self.springy = np.arange(0, max(self.displacement) * 1.1, max(self.displacement) / 100)
+            self.springy = self.springy * -1
+
+            self.animation_xticks = np.arange(-1.2 * max_vx, 1.5 * max_vx, max_vx / self.animaton_ticks_count)
+            self.animation_yticks = np.arange(-1.2 * max_vy, 1.5 * max_vy, max_vy / self.animaton_ticks_count)
+
+            if max(self.animation_yticks) > max(self.animation_xticks) or abs(min(self.animation_yticks)) > abs(
+                    min(self.animation_xticks)):
+                self.animation_xticks = self.animation_yticks
+            else:
+                self.animation_yticks = self.animation_xticks
+
+            print(max(self.animation_yticks))
+
+            plt.style.use('dark_background')
+            fig = plt.figure()
+            fig.set_size_inches(6, 8)
+            ani = FuncAnimation(fig, self.animate_calculations, interval=50, frames=int(self.n))
+
+            plt.show()
+
+            plt.plot(self.x, self.y, linewidth=0.5, color='g')
+            # plt.plot(time, displacement)
+            # plt.plot(time, velocity)
+            # plt.plot(time, tita)
+            plt.show()
+
+
+
+
 
 sim = SHM2D()
 sim.get_values()
 sim.plot_curve()
+
+sim.animate()
+
+print(sim.x)
+
+
 
 
 
